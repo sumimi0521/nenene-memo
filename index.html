@@ -166,17 +166,25 @@
     }
 
     window.onload = function () {
-      loadLogs();
-      restoreMedicineInputs(); // 入力内容の復元
+  loadLogs();
+  restoreMedicineInputs();
 
-      if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-      }
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
 
-      setInterval(() => {
-        checkNotifications();
-      }, 60000);
-    };
+  setInterval(() => {
+    checkNotifications();
+  }, 60000);
+
+  // 🌟 入力変更時に即保存
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById("med" + i).addEventListener("input", saveMedicineInputs);
+    document.getElementById("mode" + i).addEventListener("change", saveMedicineInputs);
+    document.getElementById("time" + i).addEventListener("change", saveMedicineInputs);
+  }
+};
+
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
