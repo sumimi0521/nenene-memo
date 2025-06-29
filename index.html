@@ -225,7 +225,7 @@
 
 <script>
   let notifyEnabled = true;
-  const notifyIntervalMs = 1 * 60 * 1000; // ⏱️ テスト用：1分間隔通知
+  const notifyIntervalMs = 1 * 60 * 1000; // ⏰ テスト：1分（本番：6時間＝21600000）
 
   function toggleDrawer() {
     document.getElementById("drawer").classList.toggle("open");
@@ -308,13 +308,21 @@
     const mm = String(now.getMinutes()).padStart(2, "0");
     const currentTime = `${hh}:${mm}`;
 
+    console.log(`🔁 通知チェック開始（${currentTime}）`);
+
     const meds = getCheckedMedicines();
 
     meds.forEach(med => {
-      if (med.mode === "定時" && med.time === currentTime) {
-        new Notification(`「${med.name}」を飲む時間です🕒`);
+      // 定時モード通知
+      if (med.mode === "定時") {
+        console.log(`🔎 [定時] ${med.name} は ${med.time} に設定`);
+        if (med.time === currentTime) {
+          console.log(`✅ [定時] ${med.name} の通知発火`);
+          new Notification(`「${med.name}」を飲む時間です🕒`);
+        }
       }
 
+      // 間隔モード通知
       if (med.mode === "間隔") {
         const last = localStorage.getItem(`lastTaken_${med.id}`);
         if (last) {
@@ -322,9 +330,14 @@
           const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
           const diff = now - nextTime;
 
+          console.log(`🔎 [間隔] ${med.name}: 最後=${lastTime.toLocaleTimeString()} / 次=${nextTime.toLocaleTimeString()} / Δ=${diff}ms`);
+
           if (diff >= 0 && diff < 60000) {
+            console.log(`✅ [間隔] ${med.name} の通知発火`);
             new Notification(`「${med.name}」の服用間隔が経過しました💊`);
           }
+        } else {
+          console.log(`ℹ️ [間隔] ${med.name} は未記録`);
         }
       }
     });
@@ -337,7 +350,7 @@
       Notification.requestPermission();
     }
 
-    // ⏰ 1分ごとに通知チェック
+    // 🔁 通知チェック（1分ごと）
     setInterval(() => {
       checkNotifications();
     }, 60000);
@@ -351,5 +364,6 @@
     });
   }
 </script>
+
 </body>
 </html>
