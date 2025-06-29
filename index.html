@@ -5,365 +5,186 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ねねねのお薬メモ</title>
 
-  <!-- 🌟 PWA対応 -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#f9c5d1" />
   <link rel="icon" href="icon-192.png" />
-
-  <!-- 🍎 iOS PWA対応 -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="ねねねメモ" />
   <link rel="apple-touch-icon" href="icon-192.png" />
 
   <style>
-    body {
-      font-family: "Yu Gothic UI", sans-serif;
-      margin: 0;
-      background-color: #fff8f0;
-      color: #4b3f2f;
-      overflow-x: hidden;
-    }
-
-    .drawer {
-      position: fixed;
-      top: 0;
-      left: -300px;
-      width: 280px;
-      height: 100%;
-      background-color: #f9c5d1;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-      transition: left 0.3s ease;
-      padding: 20px 10px;
-      box-sizing: border-box;
-      z-index: 1000;
-    }
-
-    .drawer.open {
-      left: 0;
-    }
-
-    .drawer h4 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .drug-row {
-      margin: 10px 0;
-    }
-
-    .drug-row > div {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .drug-row input[type="text"],
-    .drug-row select,
-    .drug-row input[type="time"] {
-      margin: 4px 0;
-      padding: 6px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      flex: 1;
-    }
-
-    .main-content {
-      transition: transform 0.3s ease;
-      position: relative;
-      z-index: 900;
-    }
-
-    .main-content.shifted {
-      transform: translateX(280px);
-    }
-
-    .menu-btn, .notify-btn {
-      position: absolute;
-      top: 16px;
-      font-size: 14px;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .menu-btn {
-      left: 16px;
-      background-color: #f9c5d1;
-      color: white;
-    }
-
-    .notify-btn {
-      right: 16px;
-      background-color: #d3d3f4;
-      color: #333;
-    }
-
-    main {
-      padding: 60px 20px 30px;
-      max-width: 500px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .record-btn, .clear-btn {
-      display: block;
-      width: 90%;
-      max-width: 400px;
-      margin: 10px auto;
-      padding: 12px;
-      font-size: 16px;
-      background-color: #f9c5d1;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .clear-btn {
-      background-color: #bbb;
-    }
-
-    #log {
-      max-height: 240px;
-      overflow-y: auto;
-      padding: 0 10px;
-      list-style: none;
-      margin: 0 auto;
-      max-width: 400px;
-      background-color: #fffefb;
-      border: 1px solid #f2e2e2;
-      border-radius: 8px;
-    }
-
-    li {
-      margin-top: 8px;
-      background-color: #ffffffcc;
-      padding: 8px;
-      border-radius: 6px;
-    }
-
-    .centered-image {
-      display: block;
-      margin: 0 auto 20px;
-      width: 120px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
+    body { font-family: "Yu Gothic UI", sans-serif; margin: 0; background: #fff8f0; color: #4b3f2f; }
+    .drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #f9c5d1;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1); transition: left 0.3s; padding: 20px 10px; box-sizing: border-box; z-index: 1000; }
+    .drawer.open { left: 0; }
+    .drug-row { margin: 10px 0; }
+    .drug-row > div { display: flex; gap: 6px; align-items: center; }
+    .drug-row input, .drug-row select { padding: 6px; font-size: 14px; border-radius: 6px; border: none; }
+    .main-content { transition: transform 0.3s; position: relative; z-index: 900; }
+    .main-content.shifted { transform: translateX(280px); }
+    .menu-btn, .notify-btn { position: absolute; top: 16px; padding: 8px 12px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .menu-btn { left: 16px; background: #f9c5d1; color: white; }
+    .notify-btn { right: 16px; background: #d3d3f4; color: #333; }
+    main { padding: 60px 20px 30px; text-align: center; max-width: 500px; margin: 0 auto; }
+    .record-btn, .clear-btn { display: block; margin: 10px auto; padding: 12px; width: 90%; max-width: 400px;
+      border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+    .record-btn { background: #f9c5d1; color: white; }
+    .clear-btn { background: #bbb; }
+    #log { max-height: 240px; overflow-y: auto; padding: 0 10px; list-style: none;
+      background: #fffefb; border: 1px solid #f2e2e2; border-radius: 8px; margin: 0 auto; max-width: 400px; }
+    li { margin-top: 8px; background: #ffffffcc; padding: 8px; border-radius: 6px; }
+    .centered-image { display: block; margin: 0 auto 20px; width: 120px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
   </style>
 </head>
 <body>
-  <!-- ✅ ドロワー -->
   <div id="drawer" class="drawer">
     <h4>おくすり設定</h4>
-
-    <!-- 薬リスト -->
-    <div class="drug-row">
-      <div>
-        <input type="text" id="med1" value="アレグラ" placeholder="薬名" />
-        <input type="checkbox" id="check1" title="記録対象" />
-      </div>
-      <select id="mode1">
-        <option value="定時">定時</option>
-        <option value="間隔">間隔</option>
-      </select>
-      <input type="time" id="time1" value="08:00" />
-    </div>
-
-    <div class="drug-row">
-      <div>
-        <input type="text" id="med2" value="パブロン" placeholder="薬名" />
-        <input type="checkbox" id="check2" />
-      </div>
-      <select id="mode2">
-        <option value="定時">定時</option>
-        <option value="間隔">間隔</option>
-      </select>
-      <input type="time" id="time2" value="12:00" />
-    </div>
-
-    <div class="drug-row">
-      <div>
-        <input type="text" id="med3" value="ロキソニン" placeholder="薬名" />
-        <input type="checkbox" id="check3" />
-      </div>
-      <select id="mode3">
-        <option value="定時">定時</option>
-        <option value="間隔">間隔</option>
-      </select>
-      <input type="time" id="time3" value="18:00" />
-    </div>
-
-    <div class="drug-row">
-      <div>
-        <input type="text" id="med4" value="EVE" placeholder="薬名" />
-        <input type="checkbox" id="check4" />
-      </div>
-      <select id="mode4">
-        <option value="定時">定時</option>
-        <option value="間隔">間隔</option>
-      </select>
-      <input type="time" id="time4" value="21:00" />
-    </div>
+    <div class="drug-row"><div><input type="text" id="med1" value="アレグラ" /><input type="checkbox" id="check1" /></div><select id="mode1"><option>定時</option><option>間隔</option></select><input type="time" id="time1" value="08:00" /></div>
+    <div class="drug-row"><div><input type="text" id="med2" value="パブロン" /><input type="checkbox" id="check2" /></div><select id="mode2"><option>定時</option><option>間隔</option></select><input type="time" id="time2" value="12:00" /></div>
+    <div class="drug-row"><div><input type="text" id="med3" value="ロキソニン" /><input type="checkbox" id="check3" /></div><select id="mode3"><option>定時</option><option>間隔</option></select><input type="time" id="time3" value="18:00" /></div>
+    <div class="drug-row"><div><input type="text" id="med4" value="EVE" /><input type="checkbox" id="check4" /></div><select id="mode4"><option>定時</option><option>間隔</option></select><input type="time" id="time4" value="21:00" /></div>
   </div>
 
-  <!-- ✅ メイン -->
   <div id="main" class="main-content">
     <button class="menu-btn" onclick="toggleDrawer()">薬リスト</button>
     <button class="notify-btn" onclick="toggleNotify()">通知ON</button>
-
     <main>
       <h2>ねねねのお薬メモ</h2>
-      <img class="centered-image" src="https://cdn.glitch.global/0f07b6a1-bbd5-4921-9509-77f42299ea85/1735094728-TREWOmJzy2lsXFM3pB6eI9Lt.webp?v=1751128176357" alt="ニンフィア">
+      <img class="centered-image" src="https://cdn.glitch.global/xxx.webp" alt="画像" />
       <button class="record-btn" onclick="recordSelected()">記録する</button>
       <button class="clear-btn" onclick="clearLogs()">全ての記録を消す</button>
       <ul id="log"></ul>
     </main>
   </div>
 
-<script>
-  let notifyEnabled = true;
-  const notifyIntervalMs = 1 * 60 * 1000; // ⏰ テスト：1分（本番：6時間＝21600000）
+  <script>
+    let notifyEnabled = true;
+    const notifyIntervalMs = 60000; // 1分間隔（本番用は 6*60*60*1000）
 
-  function toggleDrawer() {
-    document.getElementById("drawer").classList.toggle("open");
-    document.getElementById("main").classList.toggle("shifted");
-  }
-
-  function toggleNotify() {
-    notifyEnabled = !notifyEnabled;
-    const btn = document.querySelector(".notify-btn");
-    btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
-    if (notifyEnabled && Notification.permission !== "granted") {
-      Notification.requestPermission();
+    function toggleDrawer() {
+      document.getElementById("drawer").classList.toggle("open");
+      document.getElementById("main").classList.toggle("shifted");
     }
-  }
 
-  function getCheckedMedicines() {
-    const meds = [];
-    for (let i = 1; i <= 4; i++) {
-      const checkbox = document.getElementById("check" + i);
-      if (checkbox?.checked) {
-        const name = document.getElementById("med" + i).value.trim();
-        const mode = document.getElementById("mode" + i).value;
-        const time = document.getElementById("time" + i).value;
-        if (name) {
-          meds.push({ id: i, name, mode, time });
-        }
+    function toggleNotify() {
+      notifyEnabled = !notifyEnabled;
+      const btn = document.querySelector(".notify-btn");
+      btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
+      if (notifyEnabled && Notification.permission !== "granted") {
+        Notification.requestPermission();
       }
     }
-    return meds;
-  }
 
-  function recordSelected() {
-    const meds = getCheckedMedicines();
-    if (meds.length === 0) {
-      alert("記録したい薬を選択してください");
-      return;
+    function getCheckedMedicines() {
+      const meds = [];
+      for (let i = 1; i <= 4; i++) {
+        const checkbox = document.getElementById("check" + i);
+        if (checkbox?.checked) {
+          const name = document.getElementById("med" + i).value.trim();
+          const mode = document.getElementById("mode" + i).value;
+          const time = document.getElementById("time" + i).value;
+          if (name) meds.push({ id: i, name, mode, time });
+        }
+      }
+      return meds;
     }
 
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-
-    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
-
-    meds.forEach(med => {
-      const log = `${hh}:${mm} に ${med.name} を飲みました`;
-      const li = document.createElement("li");
-      li.textContent = log;
-      document.getElementById("log").prepend(li);
-      logs.push(log);
-      localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
-    });
-
-    localStorage.setItem("medicineLogs", JSON.stringify(logs));
-  }
-
-  function clearLogs() {
-    if (confirm("記録をすべて削除しますか？")) {
-      localStorage.removeItem("medicineLogs");
-      document.getElementById("log").innerHTML = "";
+    function saveMedicineInputs() {
+      for (let i = 1; i <= 4; i++) {
+        localStorage.setItem(`medName_${i}`, document.getElementById("med" + i).value);
+        localStorage.setItem(`medMode_${i}`, document.getElementById("mode" + i).value);
+        localStorage.setItem(`medTime_${i}`, document.getElementById("time" + i).value);
+      }
     }
-  }
 
-  function loadLogs() {
-    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
-    const ul = document.getElementById("log");
-    ul.innerHTML = "";
-    logs.slice().reverse().forEach(entry => {
-      const li = document.createElement("li");
-      li.textContent = entry;
-      ul.appendChild(li);
-    });
-  }
+    function restoreMedicineInputs() {
+      for (let i = 1; i <= 4; i++) {
+        const name = localStorage.getItem(`medName_${i}`);
+        const mode = localStorage.getItem(`medMode_${i}`);
+        const time = localStorage.getItem(`medTime_${i}`);
+        if (name !== null) document.getElementById("med" + i).value = name;
+        if (mode !== null) document.getElementById("mode" + i).value = mode;
+        if (time !== null) document.getElementById("time" + i).value = time;
+      }
+    }
 
-  function checkNotifications() {
-    if (!notifyEnabled || Notification.permission !== "granted") return;
+    function recordSelected() {
+      const meds = getCheckedMedicines();
+      if (meds.length === 0) {
+        alert("記録したい薬を選択してください");
+        return;
+      }
 
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const currentTime = `${hh}:${mm}`;
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
 
-    console.log(`🔁 通知チェック開始（${currentTime}）`);
+      meds.forEach(med => {
+        const log = `${hh}:${mm} に ${med.name} を飲みました`;
+        const li = document.createElement("li");
+        li.textContent = log;
+        document.getElementById("log").prepend(li);
+        logs.push(log);
+        localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
+      });
 
-    const meds = getCheckedMedicines();
+      localStorage.setItem("medicineLogs", JSON.stringify(logs));
 
-    meds.forEach(med => {
-      // 定時モード通知
-      if (med.mode === "定時") {
-        console.log(`🔎 [定時] ${med.name} は ${med.time} に設定`);
-        if (med.time === currentTime) {
-          console.log(`✅ [定時] ${med.name} の通知発火`);
+      // 🌟 入力値も保存
+      saveMedicineInputs();
+    }
+
+    function checkNotifications() {
+      if (!notifyEnabled || Notification.permission !== "granted") return;
+
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const currentTime = `${hh}:${mm}`;
+
+      const meds = getCheckedMedicines();
+
+      meds.forEach(med => {
+        if (med.mode === "定時" && med.time === currentTime) {
           new Notification(`「${med.name}」を飲む時間です🕒`);
         }
-      }
 
-      // 間隔モード通知
-      if (med.mode === "間隔") {
-        const last = localStorage.getItem(`lastTaken_${med.id}`);
-        if (last) {
-          const lastTime = new Date(last);
-          const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
-          const diff = now - nextTime;
-
-          console.log(`🔎 [間隔] ${med.name}: 最後=${lastTime.toLocaleTimeString()} / 次=${nextTime.toLocaleTimeString()} / Δ=${diff}ms`);
-
-          if (diff >= 0 && diff < 60000) {
-            console.log(`✅ [間隔] ${med.name} の通知発火`);
-            new Notification(`「${med.name}」の服用間隔が経過しました💊`);
+        if (med.mode === "間隔") {
+          const last = localStorage.getItem(`lastTaken_${med.id}`);
+          if (last) {
+            const lastTime = new Date(last);
+            const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
+            const diff = now - nextTime;
+            if (diff >= 0 && diff < 60000) {
+              new Notification(`「${med.name}」の服用間隔が経過しました💊`);
+            }
           }
-        } else {
-          console.log(`ℹ️ [間隔] ${med.name} は未記録`);
         }
-      }
-    });
-  }
-
-  window.onload = function () {
-    loadLogs();
-
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
+      });
     }
 
-    // 🔁 通知チェック（1分ごと）
-    setInterval(() => {
-      checkNotifications();
-    }, 60000);
-  };
+    window.onload = function () {
+      loadLogs();
+      restoreMedicineInputs(); // 入力内容の復元
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("service-worker.js").catch(err => {
-        console.log("Service Worker登録失敗", err);
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+
+      setInterval(() => {
+        checkNotifications();
+      }, 60000);
+    };
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("service-worker.js").catch(err => {
+          console.log("Service Worker登録失敗", err);
+        });
       });
-    });
-  }
-</script>
-
+    }
+  </script>
 </body>
 </html>
