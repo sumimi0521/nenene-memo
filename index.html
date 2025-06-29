@@ -132,6 +132,10 @@
       document.getElementById("log").prepend(li);
       logs.push(log);
       localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
+
+      // ✅ 念のためモードと時間も保存
+      localStorage.setItem(`medMode_${med.id}`, med.mode);
+      localStorage.setItem(`medTime_${med.id}`, med.time);
     });
 
     localStorage.setItem("medicineLogs", JSON.stringify(logs));
@@ -163,7 +167,6 @@
     const hh = String(now.getHours()).padStart(2, "0");
     const mm = String(now.getMinutes()).padStart(2, "0");
     const currentTime = `${hh}:${mm}`;
-
     const meds = getCheckedMedicines();
 
     meds.forEach(med => {
