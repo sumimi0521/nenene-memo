@@ -225,6 +225,7 @@
 
 <script>
   let notifyEnabled = true;
+  const notifyIntervalMs = 1 * 60 * 1000; // ⏱️ テスト用：1分間隔通知
 
   function toggleDrawer() {
     document.getElementById("drawer").classList.toggle("open");
@@ -299,7 +300,6 @@
     });
   }
 
-  // ✅ 通知判定関数（定時 & 間隔）
   function checkNotifications() {
     if (!notifyEnabled || Notification.permission !== "granted") return;
 
@@ -311,21 +311,19 @@
     const meds = getCheckedMedicines();
 
     meds.forEach(med => {
-      // 定時モード：設定時刻と一致したら通知
       if (med.mode === "定時" && med.time === currentTime) {
         new Notification(`「${med.name}」を飲む時間です🕒`);
       }
 
-      // 間隔モード：6時間経過したら通知
       if (med.mode === "間隔") {
         const last = localStorage.getItem(`lastTaken_${med.id}`);
         if (last) {
           const lastTime = new Date(last);
-          const nextTime = new Date(lastTime.getTime() + 6 * 60 * 60 * 1000);
+          const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
           const diff = now - nextTime;
 
           if (diff >= 0 && diff < 60000) {
-            new Notification(`「${med.name}」の服用から6時間が経過しました💊`);
+            new Notification(`「${med.name}」の服用間隔が経過しました💊`);
           }
         }
       }
@@ -334,17 +332,17 @@
 
   window.onload = function () {
     loadLogs();
+
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
     }
 
-    // ✅ 1分ごとに通知をチェック
+    // ⏰ 1分ごとに通知チェック
     setInterval(() => {
       checkNotifications();
     }, 60000);
   };
 
-  // ✅ PWA Service Worker 登録
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("service-worker.js").catch(err => {
