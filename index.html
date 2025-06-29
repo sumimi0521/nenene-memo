@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ねねねのお薬メモ</title>
 
-  <!-- 🌟 PWA対応の追加 -->
+  <!-- 🌟 PWA対応 -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#f9c5d1" />
   <link rel="icon" href="icon-192.png" />
 
   <!-- 🍎 iOS PWA対応 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="ねねねメモ">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ねねねメモ" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
 
   <style>
     body {
@@ -50,12 +49,18 @@
     }
 
     .drug-row {
-      display: flex;
-      flex-direction: column;
       margin: 10px 0;
     }
 
-    .drug-row input, .drug-row select {
+    .drug-row > div {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drug-row input[type="text"],
+    .drug-row select,
+    .drug-row input[type="time"] {
       margin: 4px 0;
       padding: 6px;
       font-size: 14px;
@@ -150,229 +155,96 @@
       padding: 8px;
       border-radius: 6px;
     }
-
-    .timer-line {
-      font-size: 13px;
-      color: #555;
-      margin-top: 4px;
-    }
   </style>
 </head>
 <body>
-  <!-- ✅ ドロワー：薬設定 -->
+  <!-- ✅ ドロワー -->
   <div id="drawer" class="drawer">
     <h4>おくすり設定</h4>
     <div class="drug-row">
-      <input type="text" id="med1" value="アレグラ" placeholder="薬名">
+      <div>
+        <input type="text" id="med1" value="アレグラ" placeholder="薬名" />
+        <input type="checkbox" id="check1" title="記録対象" />
+      </div>
       <select id="mode1">
         <option value="定時">定時</option>
         <option value="間隔">間隔</option>
       </select>
-      <input type="time" id="time1" value="08:00">
+      <input type="time" id="time1" value="08:00" />
     </div>
     <div class="drug-row">
-      <input type="text" id="med2" value="パブロン" placeholder="薬名">
+      <div>
+        <input type="text" id="med2" value="パブロン" placeholder="薬名" />
+        <input type="checkbox" id="check2" />
+      </div>
       <select id="mode2">
         <option value="定時">定時</option>
         <option value="間隔">間隔</option>
       </select>
-      <input type="time" id="time2" value="12:00">
+      <input type="time" id="time2" value="12:00" />
     </div>
     <div class="drug-row">
-      <input type="text" id="med3" value="ロキソニン" placeholder="薬名">
+      <div>
+        <input type="text" id="med3" value="ロキソニン" placeholder="薬名" />
+        <input type="checkbox" id="check3" />
+      </div>
       <select id="mode3">
         <option value="定時">定時</option>
         <option value="間隔">間隔</option>
       </select>
-      <input type="time" id="time3" value="18:00">
+      <input type="time" id="time3" value="18:00" />
     </div>
     <div class="drug-row">
-      <input type="text" id="med4" value="EVE" placeholder="薬名">
+      <div>
+        <input type="text" id="med4" value="EVE" placeholder="薬名" />
+        <input type="checkbox" id="check4" />
+      </div>
       <select id="mode4">
         <option value="定時">定時</option>
         <option value="間隔">間隔</option>
       </select>
-      <input type="time" id="time4" value="21:00">
+      <input type="time" id="time4" value="21:00" />
     </div>
   </div>
 
-  <!-- ✅ メイン画面 -->
+  <!-- ✅ メイン -->
   <div id="main" class="main-content">
     <button class="menu-btn" onclick="toggleDrawer()">薬リスト</button>
     <button class="notify-btn" onclick="toggleNotify()">通知ON</button>
 
     <main>
       <h2>ねねねのお薬メモ</h2>
-
-      <img class="centered-image"
-        src="https://cdn.glitch.global/0f07b6a1-bbd5-4921-9509-77f42299ea85/1735094728-TREWOmJzy2lsXFM3pB6eI9Lt.webp?v=1751128176357"
-        alt="ニンフィア">
-
+      <img class="centered-image" src="https://cdn.glitch.global/0f07b6a1-bbd5-4921-9509-77f42299ea85/1735094728-TREWOmJzy2lsXFM3pB6eI9Lt.webp?v=1751128176357" alt="ニンフィア">
       <button class="record-btn" onclick="recordSelected()">記録する</button>
       <button class="clear-btn" onclick="clearLogs()">全ての記録を消す</button>
-
       <ul id="log"></ul>
     </main>
   </div>
 
-<script>
-  let notifyEnabled = true;
-  const intervalMinutes = 1;
+  <script>
+    let notifyEnabled = true;
 
-  function toggleDrawer() {
-    document.getElementById("drawer").classList.toggle("open");
-    document.getElementById("main").classList.toggle("shifted");
-  }
-
-  function toggleNotify() {
-    notifyEnabled = !notifyEnabled;
-    const btn = document.querySelector(".notify-btn");
-    btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
-    if (notifyEnabled && Notification.permission !== "granted") {
-      Notification.requestPermission();
+    function toggleDrawer() {
+      document.getElementById("drawer").classList.toggle("open");
+      document.getElementById("main").classList.toggle("shifted");
     }
-  }
 
-  function getMedicineList() {
-    const meds = [];
-    for (let i = 1; i <= 4; i++) {
-      const name = document.getElementById("med" + i).value.trim();
-      const mode = document.getElementById("mode" + i).value;
-      const time = document.getElementById("time" + i).value.trim();
-      if (name) {
-        meds.push({ id: i, name, mode, time });
+    function toggleNotify() {
+      notifyEnabled = !notifyEnabled;
+      const btn = document.querySelector(".notify-btn");
+      btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
+      if (notifyEnabled && Notification.permission !== "granted") {
+        Notification.requestPermission();
       }
     }
-    return meds;
-  }
 
-  function recordSelected() {
-    const meds = getMedicineList();
-    const list = meds.map((m, i) => `${i + 1}: ${m.name}`).join("\n");
-    const input = prompt("記録する薬を選んでください（番号）:\n" + list);
-    const index = parseInt(input);
-    if (!index || index < 1 || index > meds.length) return alert("正しい番号を入力してください");
-
-    const med = meds[index - 1];
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const log = `${hh}:${mm} に ${med.name} を飲みました`;
-
-    const li = document.createElement("li");
-    li.textContent = log;
-    document.getElementById("log").prepend(li);
-
-    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
-    logs.push(log);
-    localStorage.setItem("medicineLogs", JSON.stringify(logs));
-    localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
-  }
-
-  function clearLogs() {
-    if (confirm("記録をすべて削除しますか？")) {
-      localStorage.removeItem("medicineLogs");
-      document.getElementById("log").innerHTML = "";
-    }
-  }
-
-  function loadLogs() {
-    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
-    const ul = document.getElementById("log");
-    ul.innerHTML = "";
-    logs.slice().reverse().forEach(entry => {
-      const li = document.createElement("li");
-      li.textContent = entry;
-      ul.appendChild(li);
-    });
-  }
-
-  function updateTimers() {
-    const now = new Date();
-    const meds = getMedicineList();
-
-    meds.forEach(med => {
-      const timerSpan = document.getElementById(`timer${med.id}`);
-      if (!timerSpan) return;
-
-      if (med.mode === "間隔") {
-        const last = localStorage.getItem(`lastTaken_${med.id}`);
-        if (last) {
-          const lastTime = new Date(last);
-          const next = new Date(lastTime.getTime() + 6 * 60 * 60 * 1000);
-          const diff = next - now;
-          if (diff <= 0) {
-            timerSpan.textContent = "服用可能です";
-          } else {
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            timerSpan.textContent = `${h}時間${m}分後に通知`;
-          }
-        } else {
-          timerSpan.textContent = "未服用";
-        }
-      } else if (med.mode === "定時") {
-        if (/^\d{2}:\d{2}$/.test(med.time)) {
-          const [h, m] = med.time.split(":").map(Number);
-          const target = new Date(now);
-          target.setHours(h);
-          target.setMinutes(m);
-          target.setSeconds(0);
-          if (target < now) target.setDate(target.getDate() + 1);
-          const diff = target - now;
-          const hh = Math.floor(diff / 3600000);
-          const mm = Math.floor((diff % 3600000) / 60000);
-          timerSpan.textContent = `${hh}時間${mm}分後に通知`;
-        } else {
-          timerSpan.textContent = "時刻未設定";
-        }
-      }
-    });
-  }
-
-  function checkNotifications() {
-    if (!notifyEnabled || Notification.permission !== "granted") return;
-    const now = new Date();
-    const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const meds = getMedicineList();
-
-    meds.forEach(med => {
-      if (med.mode === "定時" && med.time === hhmm) {
-        new Notification(`「${med.name}」を飲む時間です`);
-      }
-      if (med.mode === "間隔") {
-        const last = localStorage.getItem(`lastTaken_${med.id}`);
-        if (last) {
-          const lastTime = new Date(last);
-          const next = new Date(lastTime.getTime() + 6 * 60 * 60 * 1000);
-          if (now >= next && now - next < 60000) {
-            new Notification(`「${med.name}」の服用から6時間が経過しました`);
-          }
-        }
-      }
-    });
-  }
-
-  window.onload = function () {
-    loadLogs();
-    updateTimers();
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-    setInterval(() => {
-      checkNotifications();
-      updateTimers();
-    }, intervalMinutes * 60 * 1000);
-  };
-
-  // ✅ Service Worker登録（PWA化）
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("service-worker.js").catch(err => {
-        console.log("Service Worker登録失敗", err);
-      });
-    });
-  }
-</script>
-</body>
-</html>
+    function getCheckedMedicines() {
+      const meds = [];
+      for (let i = 1; i <= 4; i++) {
+        const checkbox = document.getElementById("check" + i);
+        if (checkbox?.checked) {
+          const name = document.getElementById("med" + i).value.trim();
+          const mode = document.getElementById("mode" + i).value;
+          const time = document.getElementById("time" + i).value;
+          if (name) {
+            meds.push({ id
