@@ -58,141 +58,157 @@
     </main>
   </div>
 
-  <script>
-    let notifyEnabled = true;
-    const notifyIntervalMs = 60000; // 1分間隔（本番用は 6*60*60*1000）
+<script>
+  let notifyEnabled = true;
+  const notifyIntervalMs = 60000;
 
-    function toggleDrawer() {
-      document.getElementById("drawer").classList.toggle("open");
-      document.getElementById("main").classList.toggle("shifted");
+  function toggleDrawer() {
+    document.getElementById("drawer").classList.toggle("open");
+    document.getElementById("main").classList.toggle("shifted");
+  }
+
+  function toggleNotify() {
+    notifyEnabled = !notifyEnabled;
+    const btn = document.querySelector(".notify-btn");
+    btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
+    if (notifyEnabled && Notification.permission !== "granted") {
+      Notification.requestPermission();
     }
+  }
 
-    function toggleNotify() {
-      notifyEnabled = !notifyEnabled;
-      const btn = document.querySelector(".notify-btn");
-      btn.textContent = notifyEnabled ? "通知ON" : "通知OFF";
-      if (notifyEnabled && Notification.permission !== "granted") {
-        Notification.requestPermission();
+  function getCheckedMedicines() {
+    const meds = [];
+    for (let i = 1; i <= 4; i++) {
+      const checkbox = document.getElementById("check" + i);
+      if (checkbox?.checked) {
+        const name = document.getElementById("med" + i).value.trim();
+        const mode = document.getElementById("mode" + i).value;
+        const time = document.getElementById("time" + i).value;
+        if (name) meds.push({ id: i, name, mode, time });
       }
     }
+    return meds;
+  }
 
-    function getCheckedMedicines() {
-      const meds = [];
-      for (let i = 1; i <= 4; i++) {
-        const checkbox = document.getElementById("check" + i);
-        if (checkbox?.checked) {
-          const name = document.getElementById("med" + i).value.trim();
-          const mode = document.getElementById("mode" + i).value;
-          const time = document.getElementById("time" + i).value;
-          if (name) meds.push({ id: i, name, mode, time });
-        }
-      }
-      return meds;
+  function saveMedicineInputs() {
+    for (let i = 1; i <= 4; i++) {
+      const med = document.getElementById("med" + i).value;
+      const mode = document.getElementById("mode" + i).value;
+      const timeRaw = document.getElementById("time" + i).value;
+      const time = timeRaw && timeRaw.length === 5 ? timeRaw : "";
+      localStorage.setItem(`medName_${i}`, med);
+      localStorage.setItem(`medMode_${i}`, mode);
+      localStorage.setItem(`medTime_${i}`, time);
+    }
+  }
+
+  function restoreMedicineInputs() {
+    for (let i = 1; i <= 4; i++) {
+      const med = localStorage.getItem(`medName_${i}`);
+      const mode = localStorage.getItem(`medMode_${i}`);
+      const time = localStorage.getItem(`medTime_${i}`);
+      if (med !== null) document.getElementById("med" + i).value = med;
+      if (mode !== null) document.getElementById("mode" + i).value = mode;
+      if (time !== null && time.length === 5) document.getElementById("time" + i).value = time;
+    }
+  }
+
+  function recordSelected() {
+    const meds = getCheckedMedicines();
+    if (meds.length === 0) {
+      alert("記録したい薬を選択してください");
+      return;
     }
 
-    function saveMedicineInputs() {
-      for (let i = 1; i <= 4; i++) {
-        localStorage.setItem(`medName_${i}`, document.getElementById("med" + i).value);
-        localStorage.setItem(`medMode_${i}`, document.getElementById("mode" + i).value);
-        localStorage.setItem(`medTime_${i}`, document.getElementById("time" + i).value);
-      }
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
+
+    meds.forEach(med => {
+      const log = `${hh}:${mm} に ${med.name} を飲みました`;
+      const li = document.createElement("li");
+      li.textContent = log;
+      document.getElementById("log").prepend(li);
+      logs.push(log);
+      localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
+    });
+
+    localStorage.setItem("medicineLogs", JSON.stringify(logs));
+    saveMedicineInputs();
+  }
+
+  function clearLogs() {
+    if (confirm("記録をすべて削除しますか？")) {
+      localStorage.removeItem("medicineLogs");
+      document.getElementById("log").innerHTML = "";
     }
+  }
 
-    function restoreMedicineInputs() {
-      for (let i = 1; i <= 4; i++) {
-        const name = localStorage.getItem(`medName_${i}`);
-        const mode = localStorage.getItem(`medMode_${i}`);
-        const time = localStorage.getItem(`medTime_${i}`);
-        if (name !== null) document.getElementById("med" + i).value = name;
-        if (mode !== null) document.getElementById("mode" + i).value = mode;
-        if (time !== null) document.getElementById("time" + i).value = time;
+  function loadLogs() {
+    const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
+    const ul = document.getElementById("log");
+    ul.innerHTML = "";
+    logs.slice().reverse().forEach(entry => {
+      const li = document.createElement("li");
+      li.textContent = entry;
+      ul.appendChild(li);
+    });
+  }
+
+  function checkNotifications() {
+    if (!notifyEnabled || Notification.permission !== "granted") return;
+
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const currentTime = `${hh}:${mm}`;
+
+    const meds = getCheckedMedicines();
+
+    meds.forEach(med => {
+      if (med.mode === "定時" && med.time === currentTime) {
+        new Notification(`「${med.name}」を飲む時間です🕒`);
       }
-    }
 
-    function recordSelected() {
-      const meds = getCheckedMedicines();
-      if (meds.length === 0) {
-        alert("記録したい薬を選択してください");
-        return;
-      }
-
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, "0");
-      const mm = String(now.getMinutes()).padStart(2, "0");
-      const logs = JSON.parse(localStorage.getItem("medicineLogs")) || [];
-
-      meds.forEach(med => {
-        const log = `${hh}:${mm} に ${med.name} を飲みました`;
-        const li = document.createElement("li");
-        li.textContent = log;
-        document.getElementById("log").prepend(li);
-        logs.push(log);
-        localStorage.setItem(`lastTaken_${med.id}`, now.toISOString());
-      });
-
-      localStorage.setItem("medicineLogs", JSON.stringify(logs));
-
-      // 🌟 入力値も保存
-      saveMedicineInputs();
-    }
-
-    function checkNotifications() {
-      if (!notifyEnabled || Notification.permission !== "granted") return;
-
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, "0");
-      const mm = String(now.getMinutes()).padStart(2, "0");
-      const currentTime = `${hh}:${mm}`;
-
-      const meds = getCheckedMedicines();
-
-      meds.forEach(med => {
-        if (med.mode === "定時" && med.time === currentTime) {
-          new Notification(`「${med.name}」を飲む時間です🕒`);
-        }
-
-        if (med.mode === "間隔") {
-          const last = localStorage.getItem(`lastTaken_${med.id}`);
-          if (last) {
-            const lastTime = new Date(last);
-            const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
-            const diff = now - nextTime;
-            if (diff >= 0 && diff < 60000) {
-              new Notification(`「${med.name}」の服用間隔が経過しました💊`);
-            }
+      if (med.mode === "間隔") {
+        const last = localStorage.getItem(`lastTaken_${med.id}`);
+        if (last) {
+          const lastTime = new Date(last);
+          const nextTime = new Date(lastTime.getTime() + notifyIntervalMs);
+          const diff = now - nextTime;
+          if (diff >= 0 && diff < 60000) {
+            new Notification(`「${med.name}」の服用間隔が経過しました💊`);
           }
         }
-      });
-    }
-
-    window.onload = function () {
-  loadLogs();
-  restoreMedicineInputs();
-
-  if (Notification.permission !== "granted") {
-    Notification.requestPermission();
+      }
+    });
   }
 
-  setInterval(() => {
-    checkNotifications();
-  }, 60000);
+  document.addEventListener("DOMContentLoaded", () => {
+    loadLogs();
+    restoreMedicineInputs();
 
-  // 🌟 入力変更時に即保存
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById("med" + i).addEventListener("input", saveMedicineInputs);
-    document.getElementById("mode" + i).addEventListener("change", saveMedicineInputs);
-    document.getElementById("time" + i).addEventListener("change", saveMedicineInputs);
-  }
-};
-
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("service-worker.js").catch(err => {
-          console.log("Service Worker登録失敗", err);
-        });
-      });
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
     }
-  </script>
+
+    setInterval(checkNotifications, 60000);
+
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById("med" + i).addEventListener("input", saveMedicineInputs);
+      document.getElementById("mode" + i).addEventListener("change", saveMedicineInputs);
+      document.getElementById("time" + i).addEventListener("change", saveMedicineInputs);
+    }
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(err => {
+        console.log("Service Worker登録失敗", err);
+      });
+    });
+  }
+</script>
 </body>
 </html>
